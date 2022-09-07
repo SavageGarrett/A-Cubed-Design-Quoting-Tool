@@ -36,22 +36,61 @@ class TabController {
       newTab.classList.add('tab');
       if (this.tabs.at(-1) === tab) {
         newTab.classList.add('active');
-        bodyText.textContent = tab.bodyText
+        this.setBodyContent(tab.id);
       }
       
-
-      newTab.addEventListener("click", function(e) {
-        bodyText.textContent = tab.bodyText
-
-        // remove active from all tabs before adding active to event target
-        let tabNodes = tabsContainer.childNodes;
-        tabNodes.forEach(tab => tab.classList.remove('active'))
-        e.target.classList.add('active');
-      })
+      newTab.setAttribute('data-id', tab.id);
+      newTab.addEventListener('click', this.handleTabClick.bind(this));
 
       tabsContainer.appendChild(newTab);
     })
   }
+  
+  setTabActive(tabId) {
+    // remove active from all tabs before adding active to event target
+    let tabNodes = tabsContainer.childNodes;
+    tabNodes.forEach(tab => tab.classList.remove('active'))
+    document.querySelector(`button[data-id="${tabId}"]`).classList.add('active');
+  }
+
+  setBodyContent(tabId) {
+    
+    console.log(tabId)
+    let tab = this.tabs.find(tab => tab.id == tabId); // not strict because num/str comparison(?)
+    console.log(tab)
+    bodyText.textContent = tab.bodyText;
+
+    let deleteButton = document.createElement('button');
+    deleteButton.textContent = 'X';
+    deleteButton.classList.add('delete-tab');
+    deleteButton.setAttribute('data-id', tabId);
+    deleteButton.addEventListener('click', this.handleRemoveTabClick.bind(this));
+    bodyText.appendChild(deleteButton);
+  }
+
+  removeTab(tabId) {
+    let tabIndex = this.tabs.findIndex(tab => tab.id == tabId); // also not strict, I should fix this later
+    this.tabs.splice(tabIndex, 1);
+    this.renderTabButtons();
+  }
+
+  handleTabClick(event) {
+    let tabId = event.target.getAttribute('data-id');
+    this.setTabActive(tabId);
+    this.setBodyContent(tabId);
+  }
+
+  handleNewTabClick(event) {
+    this.addTab();
+  }
+
+  handleRemoveTabClick(event) {
+    let tabId = event.target.getAttribute('data-id');
+    console.log("removing", tabId);
+    this.removeTab(tabId);
+  }
+
+  
 
 }
 

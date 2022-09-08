@@ -14,9 +14,8 @@ class TabController {
     let tab = {
       id: this.currentId++, // moved to top to make strings start from 1
       tabTitle: "tab " + this.currentId,
-      bodyText: "test body " + this.currentId,
+      bodyText: "Tab " + this.currentId,
 
-      // testing simple math
       numOne : 0,
       numTwo : 0,
     }
@@ -61,8 +60,6 @@ class TabController {
     let tab = this.tabs.find(tab => tab.id == tabId); // not strict because num/str comparison(?)
     bodyText.textContent = tab.bodyText;
 
-    bodyText.setAttribute('data-id', tab.id);
-
     let deleteButton = document.createElement('button');
     deleteButton.textContent = 'X';
     deleteButton.classList.add('delete-tab');
@@ -70,48 +67,42 @@ class TabController {
     deleteButton.addEventListener('click', this.handleRemoveTabClick.bind(this));
     bodyText.appendChild(deleteButton);
 
+    this.renderInputs('First Operand:', 'num-one', tabId);
+    this.renderInputs('Second Operand:', 'num-two', tabId);
+    bodyText.appendChild(document.createElement('br')); // adding this so renderResults can replace it
 
-    // testing form creation below - this method is getting huge, I'll refactor later
+    this.renderResults(tab);
+  }
 
-    //<label for="input-one">First Operand:</label>
+  renderInputs(labelText, id, tabId) { // I can probably improve the param names
+    let tab = this.tabs.find(tab => tab.id == tabId)
+    
     let label = document.createElement('label');
-    label.setAttribute('for', 'num-one');
-    label.textContent = 'First Operand:';
+    label.setAttribute('for', id);
+    label.textContent = labelText;
     bodyText.appendChild(label);
 
-    //<input type="text" name="input-one" id="input-one">
     let input = document.createElement('input');
     input.setAttribute('type', 'text');
-    input.setAttribute('name', 'num-one');
-    input.setAttribute('id', 'num-one');
-    input.value = tab.numOne;
-    input.oninput = this.handleInputChange.bind(this);
+    input.setAttribute('name', id);
+    input.setAttribute('id', id);
+    input.value = (id == 'num-one') ? tab.numOne : tab.numTwo;
+    if (input.value == 0) input.value = ''; // stop user from having to delete 0
+    
+    input.addEventListener('input', this.handleInputChange.bind(this));
     bodyText.appendChild(input);
+  }
 
-    //<label for="input-two">Second Operand:</label>
-    label = document.createElement('label');
-    label.setAttribute('for', 'num-two');
-    label.textContent = 'Second Operand:';
-    bodyText.appendChild(label);
-
-    //<input type="text" name="input-two" id="input-two">
-    let inputTwo = document.createElement('input');
-    inputTwo.setAttribute('type', 'text');
-    inputTwo.setAttribute('name', 'num-two');
-    inputTwo.setAttribute('id', 'num-two');
-    inputTwo.value = tab.numTwo;
-    inputTwo.oninput = this.handleInputChange.bind(this);
-    bodyText.appendChild(inputTwo);
-
+  renderResults(tab) {
     let result = document.createElement('p');
     result.classList.add('result');
     result.textContent = `${tab.numOne} + ${tab.numTwo} = ${parseInt(tab.numOne) + parseInt(tab.numTwo)}`;
-    bodyText.appendChild(result);
+    // if (tab.numOne == '' || tab.numTwo == '') result.textContent = 'Enter numbers to calculate';
+    bodyText.replaceChild(result, bodyText.lastChild);
   }
   
   handleInputChange(event) {
-    let tabId = event.target.parentNode.getAttribute('data-id');
-    // console.log(tabId);
+    let tabId = document.querySelector('.active').getAttribute('data-id');
     let tab = this.tabs.find(tab => tab.id == tabId);
     console.log(tab)
     if (event.target.id == 'num-one') {
@@ -120,12 +111,8 @@ class TabController {
       tab.numTwo = event.target.value;
     }
 
-
-    let result = `${tab.numOne} + ${tab.numTwo} = ${parseInt(tab.numOne) + parseInt(tab.numTwo)}`;
-    document.querySelector('.result').textContent = result;
+    this.renderResults(tab);
   }
-
-
 
   removeTab(tabId) {
     let tabIndex = this.tabs.findIndex(tab => tab.id == tabId); // also not strict, I should fix this later

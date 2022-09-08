@@ -26,6 +26,10 @@ header {
   color: var(--lightest);
   height: 85px;
   font-size: 22px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 nav {
@@ -33,6 +37,11 @@ nav {
   color: white;
   height: 50px;
   display: flex;
+}
+
+#logo {
+  height: 140px;
+  padding-left: 5px;
 }
 
 .tabs-container {
@@ -108,9 +117,17 @@ main {
   right: 0px;
 }
 
+input {
+  background-color: var(--lightest);
+  border-radius: 7px;
+  padding: 3px 7px;
+  font-weight: bold;
+}
 
-
-
+input:active,
+input:focus {
+  background-color: white;
+}
 
 
 

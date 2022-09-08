@@ -1,6 +1,6 @@
 const newTabBtn = document.querySelector('#new-tab-btn');
 const tabsContainer = document.querySelector('.tabs-container');
-const bodyText = document.querySelector('#body-text')
+const bodyText = document.querySelector('#body-container')
 
 
 class TabController {
@@ -15,7 +15,10 @@ class TabController {
       id: this.currentId++, // moved to top to make strings start from 1
       tabTitle: "tab " + this.currentId,
       bodyText: "test body " + this.currentId,
-      
+
+      // testing simple math
+      numOne : 0,
+      numTwo : 0,
     }
 
     this.tabs.push(tab);
@@ -55,10 +58,10 @@ class TabController {
 
   setBodyContent(tabId) {
     
-    console.log(tabId)
     let tab = this.tabs.find(tab => tab.id == tabId); // not strict because num/str comparison(?)
-    console.log(tab)
     bodyText.textContent = tab.bodyText;
+
+    bodyText.setAttribute('data-id', tab.id);
 
     let deleteButton = document.createElement('button');
     deleteButton.textContent = 'X';
@@ -66,7 +69,63 @@ class TabController {
     deleteButton.setAttribute('data-id', tabId);
     deleteButton.addEventListener('click', this.handleRemoveTabClick.bind(this));
     bodyText.appendChild(deleteButton);
+
+
+    // testing form creation below - this method is getting huge, I'll refactor later
+
+    //<label for="input-one">First Operand:</label>
+    let label = document.createElement('label');
+    label.setAttribute('for', 'num-one');
+    label.textContent = 'First Operand:';
+    bodyText.appendChild(label);
+
+    //<input type="text" name="input-one" id="input-one">
+    let input = document.createElement('input');
+    input.setAttribute('type', 'text');
+    input.setAttribute('name', 'num-one');
+    input.setAttribute('id', 'num-one');
+    input.value = tab.numOne;
+    input.oninput = this.handleInputChange.bind(this);
+    bodyText.appendChild(input);
+
+    //<label for="input-two">Second Operand:</label>
+    label = document.createElement('label');
+    label.setAttribute('for', 'num-two');
+    label.textContent = 'Second Operand:';
+    bodyText.appendChild(label);
+
+    //<input type="text" name="input-two" id="input-two">
+    let inputTwo = document.createElement('input');
+    inputTwo.setAttribute('type', 'text');
+    inputTwo.setAttribute('name', 'num-two');
+    inputTwo.setAttribute('id', 'num-two');
+    inputTwo.value = tab.numTwo;
+    inputTwo.oninput = this.handleInputChange.bind(this);
+    bodyText.appendChild(inputTwo);
+
+    let result = document.createElement('p');
+    result.classList.add('result');
+    result.textContent = `${tab.numOne} + ${tab.numTwo} = ${parseInt(tab.numOne) + parseInt(tab.numTwo)}`;
+    bodyText.appendChild(result);
   }
+  
+  handleInputChange(event) {
+    let tabId = event.target.parentNode.getAttribute('data-id');
+    // console.log(tabId);
+    let tab = this.tabs.find(tab => tab.id == tabId);
+    console.log(tab)
+    if (event.target.id == 'num-one') {
+      tab.numOne = event.target.value;
+    } else if (event.target.id == 'num-two') {
+      tab.numTwo = event.target.value;
+    }
+
+
+    let result = `${tab.numOne} + ${tab.numTwo} = ${parseInt(tab.numOne) + parseInt(tab.numTwo)}`;
+    document.querySelector('.result').textContent = result;
+  }
+
+
 
   removeTab(tabId) {
     let tabIndex = this.tabs.findIndex(tab => tab.id == tabId); // also not strict, I should fix this later
@@ -90,12 +149,11 @@ class TabController {
     this.removeTab(tabId);
   }
 
-  
+  init() {
+    newTabBtn.addEventListener('click', this.handleNewTabClick.bind(this));
+  }
 
 }
 
 const tabController = new TabController();
-
-newTabBtn.onclick = () => {
-  tabController.addTab();
-};
+tabController.init();

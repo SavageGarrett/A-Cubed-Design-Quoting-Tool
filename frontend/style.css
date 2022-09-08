@@ -85,9 +85,28 @@ main {
   margin: 14px;
   padding: 12px;
   border-radius: 12px;
+
 }
 
+#body-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  gap: 10px;
+}
 
+.delete-tab {
+  border: none;
+  background-color: rgb(192, 97, 59);
+  color: white;
+  padding: 5px 15px;
+  border-radius: 10px;
+  font-size: 27px;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+}
 
 
 

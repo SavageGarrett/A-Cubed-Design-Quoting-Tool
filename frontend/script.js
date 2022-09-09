@@ -1,6 +1,6 @@
 const newTabBtn = document.querySelector('#new-tab-btn');
 const tabsContainer = document.querySelector('.tabs-container');
-const bodyText = document.querySelector('#body-container')
+const tabBody = document.querySelector('#body-container')
 
 
 class TabController {
@@ -14,7 +14,9 @@ class TabController {
     let tab = {
       id: this.currentId++, // moved to top to make strings start from 1
       tabTitle: "tab " + this.currentId,
-      bodyText: "Tab " + this.currentId,
+      tabBody: "Tab " + this.currentId,
+
+      tabType: '', // 'addition', 'multiplication', 'division'
 
       numOne : 0,
       numTwo : 0,
@@ -26,7 +28,7 @@ class TabController {
 
   renderTabButtons() {
     // for each tab in the tab array, create a button and append to dom
-    // but first, clean up the old buttons
+    // but first, clean up the old buttons.
     while (tabsContainer.firstChild) {
       tabsContainer.removeChild(tabsContainer.firstChild)
     }
@@ -56,23 +58,64 @@ class TabController {
   }
 
   setBodyContent(tabId) {
+
+
     
     let tab = this.tabs.find(tab => tab.id == tabId); // not strict because num/str comparison(?)
-    bodyText.textContent = tab.bodyText;
+    tabBody.textContent = tab.tabBody;
+    this.renderDeleteBtn(tabId);
+    
+    if (!tab.tabType) {
+      console.log('no tab type');
 
-    let deleteButton = document.createElement('button');
-    deleteButton.textContent = 'X';
-    deleteButton.classList.add('delete-tab');
-    deleteButton.setAttribute('data-id', tabId);
-    deleteButton.addEventListener('click', this.handleRemoveTabClick.bind(this));
-    bodyText.appendChild(deleteButton);
+      // if tab type is not set, prompt user for type
+      // I'll probably to refactor this to stay DRY
 
-    this.renderInputs('First Operand:', 'num-one', tabId);
-    this.renderInputs('Second Operand:', 'num-two', tabId);
-    bodyText.appendChild(document.createElement('br')); // adding this so renderResults can replace it
+      let typeBtnContainer = document.createElement('div');
+      typeBtnContainer.classList.add('type-btn-container');
 
-    this.renderResults(tab);
+      let tabTypePrompt = document.createElement('p');
+      tabTypePrompt.textContent = 'What type of math problem would you like to solve?';
+      tabBody.appendChild(tabTypePrompt);
+
+      let additionBtn = document.createElement('button');
+      additionBtn.textContent = 'Addition';
+      additionBtn.addEventListener('click', this.handleTabTypeClick.bind(this));
+      typeBtnContainer.appendChild(additionBtn);
+
+      let multiplicationBtn = document.createElement('button');
+      multiplicationBtn.textContent = 'Multiplication';
+      multiplicationBtn.addEventListener('click', this.handleTabTypeClick.bind(this));
+      typeBtnContainer.appendChild(multiplicationBtn);
+
+      let divisionBtn = document.createElement('button');
+      divisionBtn.textContent = 'Division';
+      divisionBtn.addEventListener('click', this.handleTabTypeClick.bind(this));
+      typeBtnContainer.appendChild(divisionBtn);
+
+
+      tabBody.appendChild(typeBtnContainer);
+
+      
+    } else {
+      // if tab type is set, render inputs
+      this.renderInputs('Operand One:', 'num-one', tabId);
+      this.renderInputs('Operand Two:', 'num-two', tabId);
+      tabBody.appendChild(document.createElement('br')); // adding this so renderResults can replace it
+      this.renderResults(tab);
+    }
+
   }
+
+  handleTabTypeClick(event) {
+    let tabId = document.querySelector('.active').getAttribute('data-id');
+    let tab = this.tabs.find(tab => tab.id == tabId);
+    tab.tabType = event.target.textContent;
+    tab.tabBody += ` - ${tab.tabType}`;
+    this.setBodyContent(tabId); // not sure if this is the best way 
+  }
+
+
 
   renderInputs(labelText, id, tabId) { // I can probably improve the param names
     let tab = this.tabs.find(tab => tab.id == tabId)
@@ -80,31 +123,52 @@ class TabController {
     let label = document.createElement('label');
     label.setAttribute('for', id);
     label.textContent = labelText;
-    bodyText.appendChild(label);
+    tabBody.appendChild(label);
 
     let input = document.createElement('input');
-    input.setAttribute('type', 'text');
+    input.setAttribute('type', 'number');
     input.setAttribute('name', id);
     input.setAttribute('id', id);
     input.value = (id == 'num-one') ? tab.numOne : tab.numTwo;
     if (input.value == 0) input.value = ''; // stop user from having to delete 0
     
     input.addEventListener('input', this.handleInputChange.bind(this));
-    bodyText.appendChild(input);
+    tabBody.appendChild(input);
   }
 
   renderResults(tab) {
     let result = document.createElement('p');
     result.classList.add('result');
-    result.textContent = `${tab.numOne} + ${tab.numTwo} = ${parseInt(tab.numOne) + parseInt(tab.numTwo)}`;
-    // if (tab.numOne == '' || tab.numTwo == '') result.textContent = 'Enter numbers to calculate';
-    bodyText.replaceChild(result, bodyText.lastChild);
+    if (tab.numOne === '') tab.numOne = 0;
+    if (tab.numTwo === '') tab.numTwo = 0;
+    tab.numOne = parseFloat(tab.numOne);
+    tab.numTwo = parseFloat(tab.numTwo);
+
+    // simple math, this will be removed later
+    if (tab.tabType == 'Addition') {
+      result.textContent = `${tab.numOne} + ${tab.numTwo} = ${tab.numOne + tab.numTwo}`;
+    } else if (tab.tabType == 'Multiplication') {
+      result.textContent = `${tab.numOne} * ${tab.numTwo} = ${tab.numOne * tab.numTwo}`;
+    } else if (tab.tabType == 'Division') {
+      result.textContent = `${tab.numOne} / ${tab.numTwo} = ${Number.parseFloat((tab.numOne / tab.numTwo).toFixed(3))}`;
+      if (tab.numTwo == 0) result.textContent = 'Cannot divide by 0';
+
+    }
+    tabBody.replaceChild(result, tabBody.lastChild);
+  }
+
+  renderDeleteBtn(tabId) {
+    let deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'X';
+    deleteBtn.classList.add('delete-tab');
+    deleteBtn.setAttribute('data-id', tabId);
+    deleteBtn.addEventListener('click', this.handleRemoveTabClick.bind(this));
+    tabBody.appendChild(deleteBtn);
   }
   
   handleInputChange(event) {
     let tabId = document.querySelector('.active').getAttribute('data-id');
     let tab = this.tabs.find(tab => tab.id == tabId);
-    console.log(tab)
     if (event.target.id == 'num-one') {
       tab.numOne = event.target.value;
     } else if (event.target.id == 'num-two') {

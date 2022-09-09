@@ -59,17 +59,14 @@ class TabController {
 
   setBodyContent(tabId) {
 
-
     
     let tab = this.tabs.find(tab => tab.id == tabId); // not strict because num/str comparison(?)
     tabBody.textContent = tab.tabBody;
+
     this.renderDeleteBtn(tabId);
     
     if (!tab.tabType) {
       console.log('no tab type');
-
-      // if tab type is not set, prompt user for type
-      // I'll probably to refactor this to stay DRY
 
       let typeBtnContainer = document.createElement('div');
       typeBtnContainer.classList.add('type-btn-container');
@@ -78,24 +75,11 @@ class TabController {
       tabTypePrompt.textContent = 'What type of math problem would you like to solve?';
       tabBody.appendChild(tabTypePrompt);
 
-      let additionBtn = document.createElement('button');
-      additionBtn.textContent = 'Addition';
-      additionBtn.addEventListener('click', this.handleTabTypeClick.bind(this));
-      typeBtnContainer.appendChild(additionBtn);
-
-      let multiplicationBtn = document.createElement('button');
-      multiplicationBtn.textContent = 'Multiplication';
-      multiplicationBtn.addEventListener('click', this.handleTabTypeClick.bind(this));
-      typeBtnContainer.appendChild(multiplicationBtn);
-
-      let divisionBtn = document.createElement('button');
-      divisionBtn.textContent = 'Division';
-      divisionBtn.addEventListener('click', this.handleTabTypeClick.bind(this));
-      typeBtnContainer.appendChild(divisionBtn);
-
+      this.renderTypeButton(typeBtnContainer, 'Addition');
+      this.renderTypeButton(typeBtnContainer, 'Multiplication');
+      this.renderTypeButton(typeBtnContainer, 'Division');
 
       tabBody.appendChild(typeBtnContainer);
-
       
     } else {
       // if tab type is set, render inputs
@@ -114,8 +98,6 @@ class TabController {
     tab.tabBody += ` - ${tab.tabType}`;
     this.setBodyContent(tabId); // not sure if this is the best way 
   }
-
-
 
   renderInputs(labelText, id, tabId) { // I can probably improve the param names
     let tab = this.tabs.find(tab => tab.id == tabId)
@@ -136,6 +118,13 @@ class TabController {
     tabBody.appendChild(input);
   }
 
+  renderTypeButton(container, mathType) {
+    let typeButton = document.createElement('button');
+    typeButton.textContent = mathType;
+    typeButton.addEventListener('click', this.handleTabTypeClick.bind(this));
+    container.appendChild(typeButton);
+  }
+
   renderResults(tab) {
     let result = document.createElement('p');
     result.classList.add('result');
@@ -152,7 +141,6 @@ class TabController {
     } else if (tab.tabType == 'Division') {
       result.textContent = `${tab.numOne} / ${tab.numTwo} = ${Number.parseFloat((tab.numOne / tab.numTwo).toFixed(3))}`;
       if (tab.numTwo == 0) result.textContent = 'Cannot divide by 0';
-
     }
     tabBody.replaceChild(result, tabBody.lastChild);
   }
@@ -164,6 +152,25 @@ class TabController {
     deleteBtn.setAttribute('data-id', tabId);
     deleteBtn.addEventListener('click', this.handleRemoveTabClick.bind(this));
     tabBody.appendChild(deleteBtn);
+  }
+
+  renderHomePage() {
+    tabBody.textContent = ''
+
+    let welcome = document.createElement('p');
+    welcome.textContent = 'Welcome to a prototype tabbed calculator!';
+    tabBody.appendChild(welcome);
+
+    let instructions = document.createElement('p');
+    instructions.textContent = 'Click the plus on the top left to get started!';
+    tabBody.appendChild(instructions);
+
+
+    let homeImg = document.createElement('img');
+    homeImg.classList.add('home-img');
+    homeImg.setAttribute('src', './img/ACubeWhiteNoText.png');
+    homeImg.setAttribute('alt', 'A Cubed Design Logo');
+    tabBody.appendChild(homeImg);
   }
   
   handleInputChange(event) {
@@ -195,13 +202,21 @@ class TabController {
   }
 
   handleRemoveTabClick(event) {
+    
     let tabId = event.target.getAttribute('data-id');
     console.log("removing", tabId);
     this.removeTab(tabId);
+
+    // this probably isn't the best place to do this(?)
+    if (this.tabs.length === 0) {
+      this.renderHomePage();
+      return;
+    }
   }
 
   init() {
     newTabBtn.addEventListener('click', this.handleNewTabClick.bind(this));
+    this.renderHomePage();
   }
 
 }

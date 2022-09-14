@@ -3,6 +3,39 @@ const tabsContainer = document.querySelector('.tabs-container');
 const tabBody = document.querySelector('#body-container')
 
 
+class Quote {
+
+  constructor(id) {
+    this.id = id;
+    this.type = ''; // Addition, Multiplication, Division
+    this.title = `Tab ${this.id}`;
+
+    this.numOne = 0;
+    this.numTwo = 0;
+    this.result = '';
+  }
+
+  calculate() {
+    // simple math, this will be replaced later
+    if (this.type == 'Addition') {
+      this.result = `${this.numOne} + ${this.numTwo} = ${this.numOne + this.numTwo}`;
+    } else if (this.type == 'Multiplication') {
+      this.result = `${this.numOne} * ${this.numTwo} = ${this.numOne * this.numTwo}`;
+    } else if (this.type == 'Division') {
+      this.result = `${this.numOne} / ${this.numTwo} = ${Number.parseFloat((this.numOne / this.numTwo).toFixed(3))}`;
+      if (this.numTwo == 0) this.result = 'Cannot divide by zero';
+    }
+    return this.result;
+  }
+
+  updateTitle() {
+    // placeholder, later this method will let the user change the title
+    this.title += ` - ${this.type}`;
+  }
+
+}
+
+
 class TabController {
   
   constructor() {
@@ -11,18 +44,8 @@ class TabController {
   }
 
   addTab() {
-    let tab = {
-      id: this.currentId++, // moved to top to make strings start from 1
-      tabTitle: "tab " + this.currentId,
-      tabBody: "Tab " + this.currentId,
-
-      tabType: '', // 'addition', 'multiplication', 'division'
-
-      numOne : 0,
-      numTwo : 0,
-    }
-
-    this.tabs.push(tab);
+    this.tabs.push(new Quote(this.currentId));
+    this.currentId++;
     this.renderTabButtons();
   }
 
@@ -36,11 +59,11 @@ class TabController {
     this.tabs.forEach(tab => {
 
       let newTab = document.createElement('button');
-      newTab.textContent = tab.tabTitle;
+      newTab.textContent = tab.title;
       newTab.classList.add('tab');
       if (this.tabs.at(-1) === tab) {
         newTab.classList.add('active');
-        this.setBodyContent(tab.id);
+        this.renderBodyContent(tab.id);
       }
       
       newTab.setAttribute('data-id', tab.id);
@@ -57,7 +80,7 @@ class TabController {
     document.querySelector(`button[data-id="${tabId}"]`).classList.add('active');
   }
 
-  setBodyContent(tabId) {
+  renderBodyContent(tabId) {
 
     
     let tab = this.tabs.find(tab => tab.id == tabId); // not strict because num/str comparison(?)
@@ -65,7 +88,7 @@ class TabController {
 
     this.renderDeleteBtn(tabId);
     
-    if (!tab.tabType) {
+    if (!tab.type) {
       console.log('no tab type');
 
       let typeBtnContainer = document.createElement('div');
@@ -83,6 +106,8 @@ class TabController {
       
     } else {
       // if tab type is set, render inputs
+      this.renderTitle(tabId);
+
       this.renderInputs('Operand One:', 'num-one', tabId);
       this.renderInputs('Operand Two:', 'num-two', tabId);
       tabBody.appendChild(document.createElement('br')); // adding this so renderResults can replace it
@@ -94,9 +119,10 @@ class TabController {
   handleTabTypeClick(event) {
     let tabId = document.querySelector('.active').getAttribute('data-id');
     let tab = this.tabs.find(tab => tab.id == tabId);
-    tab.tabType = event.target.textContent;
-    tab.tabBody += ` - ${tab.tabType}`;
-    this.setBodyContent(tabId); // not sure if this is the best way 
+    tab.type = event.target.textContent;
+    tab.updateTitle();
+    document.querySelector('.active').textContent = tab.title;
+    this.renderBodyContent(tabId); // not sure if this is the best way 
   }
 
   renderInputs(labelText, id, tabId) { // I can probably improve the param names
@@ -118,6 +144,13 @@ class TabController {
     tabBody.appendChild(input);
   }
 
+  renderTitle(tabId) {
+    let tab = this.tabs.find(tab => tab.id == tabId);
+    let tabBodyTitle = document.createElement('h3');
+    tabBodyTitle.textContent = tab.title;
+    tabBody.appendChild(tabBodyTitle);
+  }
+
   renderTypeButton(container, mathType) {
     let typeButton = document.createElement('button');
     typeButton.textContent = mathType;
@@ -133,15 +166,7 @@ class TabController {
     tab.numOne = parseFloat(tab.numOne);
     tab.numTwo = parseFloat(tab.numTwo);
 
-    // simple math, this will be removed later
-    if (tab.tabType == 'Addition') {
-      result.textContent = `${tab.numOne} + ${tab.numTwo} = ${tab.numOne + tab.numTwo}`;
-    } else if (tab.tabType == 'Multiplication') {
-      result.textContent = `${tab.numOne} * ${tab.numTwo} = ${tab.numOne * tab.numTwo}`;
-    } else if (tab.tabType == 'Division') {
-      result.textContent = `${tab.numOne} / ${tab.numTwo} = ${Number.parseFloat((tab.numOne / tab.numTwo).toFixed(3))}`;
-      if (tab.numTwo == 0) result.textContent = 'Cannot divide by 0';
-    }
+    result.textContent = tab.calculate();
     tabBody.replaceChild(result, tabBody.lastChild);
   }
 
@@ -194,7 +219,7 @@ class TabController {
   handleTabClick(event) {
     let tabId = event.target.getAttribute('data-id');
     this.setTabActive(tabId);
-    this.setBodyContent(tabId);
+    this.renderBodyContent(tabId);
   }
 
   handleNewTabClick(event) {
